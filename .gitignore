@@ -1,5 +1,6 @@
 *.egg-info
 *.egg
+*.pyc
 .Python
 bin
 lib
