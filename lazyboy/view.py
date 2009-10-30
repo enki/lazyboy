@@ -35,9 +35,7 @@ class View(CassandraBase):
     def __init__(self, view_key=None, record_key=None, record_class=None):
         assert not view_key or isinstance(view_key, Key)
         assert not record_key or isinstance(record_key, Key)
-        assert not record_class or (isinstance(record_class, type) and
-                                    (record_class is Record or
-                                     Record in record_class.__bases__))
+        assert not record_class or isinstance(record_class, type)
 
         CassandraBase.__init__(self)
 
@@ -88,6 +86,7 @@ class View(CassandraBase):
         return record.key.key if record else str(uuid.uuid1())
 
     def append(self, record):
+        """Append a record to a view"""
         assert isinstance(record, Record), \
             "Can't append non-record type %s to view %s" % \
             (record.__class__, self.__class__)
@@ -96,14 +95,24 @@ class View(CassandraBase):
             self.key.get_path(column=self._record_key(record)),
             record.key.key, record.timestamp(), ConsistencyLevel.ONE)
 
-
+    def remove(self, record):
+        """Remove a record from a view"""
+        assert isinstance(record, Record), \
+            "Can't remove non-record type %s to view %s" % \
+            (record.__class__, self.__class__)
+        self._get_cas().remove(
+            self.key.keyspace, self.key.key,
+            self.key.get_path(column=self._record_key(record)),
+            record.timestamp(), ConsistencyLevel.ONE)
+                
+                
 class PartitionedView(object):
     """A Lazyboy view which is partitioned across rows."""
     def __init__(self, view_key=None, view_class=None):
         self.view_key = view_key
         self.view_class = view_class
 
-    def partition_keys():
+    def partition_keys(self):
         """Return a sequence of row keys for the view partitions."""
         return ()
 

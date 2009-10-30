@@ -14,7 +14,7 @@ from cassandra.ttypes import Column, SuperColumn, ColumnOrSuperColumn, \
 from lazyboy.base import CassandraBase
 from lazyboy.key import Key
 from lazyboy.exceptions import ErrorMissingField, ErrorNoSuchRecord, \
-    ErrorMissingKey
+    ErrorMissingKey, ErrorInvalidValue
 
 
 class Record(CassandraBase, dict):
@@ -77,6 +77,9 @@ class Record(CassandraBase, dict):
 
     def __setitem__(self, item, value):
         """Set an item, storing it into the _columns backing store."""
+        if value is None:
+            raise ErrorInvalidValue("You may not set an item to None.")
+
         value = self.sanitize(value)
 
         # If this doesn't change anything, don't record it
@@ -158,12 +161,14 @@ class Record(CassandraBase, dict):
         for path in deleted:
             client.remove(self.key.keyspace, self.key.key, path,
                           self.timestamp(), ConsistencyLevel.ONE)
+        self._deleted.clear()
 
         # Update items
         if changed:
             client.batch_insert(*self._get_batch_args(self.key, changed))
+            self._modified.clear()
+        self._original = self._columns.copy()
 
-        self._original = self._columns
         return self
 
     def _get_batch_args(self, key, columns):
