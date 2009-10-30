@@ -56,6 +56,7 @@ class Field(object):
 class CharField(Field):
     pass
 
+StringField = CharField
 
 class KeyField(CharField):
     required = True
