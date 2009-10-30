@@ -1,6 +1,6 @@
 from lazyboy.record import Record
 from lazyboy.key import Key
-
+import simplejson as json
 
 class Field(object):
     def __init__(self, **kwargs):
@@ -23,7 +23,7 @@ class Field(object):
         instance[self.name] = self.sanitize(value)
 
     def __get__(self, instance, owner):
-        return instance.get(self.name, self.default)
+        return self.decode(instance.get(self.name, self._get_default()))
 
     def encode(self, value):
         if value.__class__ is unicode:
@@ -42,12 +42,15 @@ class Field(object):
 
     def sanitize(self, value):
         if value == None and self.default != None:
-            if callable(self.default):
-                value = self.default()
-            else:
-                value = self.default
+            value = self._get_default()
 
         return value
+
+    def _get_default(self):
+        if callable(self.default):
+            return self.default()
+        else:
+            return self.default
 
 
 class CharField(Field):
@@ -63,16 +66,6 @@ class KeyField(CharField):
 
         CharField.__init__(self, **kwargs)
 
-    def __set__(self, instance, value):
-        instance[self.name] = Key(keyspace=instance.Meta.keyspace,
-            column_family=instance.Meta.column_family, 
-            key=self.sanitize(value))
-
-    def __get__(self, instance, owner):
-        if self.name in instance:
-            return instance[self.name].key
-
-        raise AttributeError("'%s' is not a valid attribute." % self.name)
 
 class IntegerField(Field):
     decode = int
@@ -173,8 +166,15 @@ class ModelType(type):
                 attrs['_key_field'] = attrname
  
         fields.update(new_fields)
+
+        if 'key' in fields:
+            raise AttributeError("Models cannot have field named 'key'.")
+
         attrs['fields'] = fields
         new_cls = super(ModelType, cls).__new__(cls, name, bases, attrs)
+
+        if '_key_field' not in attrs:
+            raise AttributeError("%s is missing a KeyField." % name)
 
         for field, value in new_fields.items():
             setattr(new_cls, field, value)
@@ -185,9 +185,11 @@ class ModelType(type):
 class Model(Record):
     __metaclass__ = ModelType
 
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
+        super(Model, self).__init__(*args, **kwargs)
+
         if self._key_field in kwargs and len(kwargs) == 1:
-            self.load(self._key())
+            self.load(self.key)
         elif len(kwargs) > 1:
             for key, value in kwargs.items():
                 if key in self.fields:
@@ -195,11 +197,20 @@ class Model(Record):
                 else:
                     raise TypeError, "Unexpected keyword arguments '%s'" % key
 
-    @property
-    def key(self):
+    def get_key(self):
         return Key(keyspace=self.Meta.keyspace, 
-            key=self.fields[self._key_field],
-            column_space=self.Meta.column_family)
+            key=Record.sanitize(self, self[self._key_field]),
+            column_family=self.Meta.column_family)
+
+    def set_key(self, key):
+        pass
+
+    key = property(get_key, set_key)
+
+    def _clean(self):
+        map(self.__delitem__, self.keys())
+        self._original, self._columns = {}, {}
+        self._modified, self._deleted = {}, {}
 
     def save(self):
         for name, field in self.fields.items():
@@ -212,12 +223,27 @@ class Model(Record):
             if name in self:
                 field.validate(self[name])
 
-        data = dict([(k, self.fields[k].encode(v)) for k, v in self.items()])
+        # data = dict([(k, self.fields[k].encode(v)) for k, v in self.items()])
 
         Record.save(self)
 
+    def sanitize(self, value):
+        return value
+
     def delete(self):
         self.remove()
+
+    def _marshal(self):
+        result = Record._marshal(self)
+
+        changed = []
+        for col in result['changed']:
+            col.value = self.fields[col.name].encode(col.value)
+            changed.append(col)
+
+        result['changed'] = tuple(changed)
+
+        return result
 
     def update(self, arg=None, **kwargs):
         if arg:

@@ -78,6 +78,7 @@ class Record(CassandraBase, dict):
     def __setitem__(self, item, value):
         """Set an item, storing it into the _columns backing store."""
         value = self.sanitize(value)
+
         # If this doesn't change anything, don't record it
         _orig = self._original.get(item)
         if _orig and _orig.value == value:
@@ -154,7 +155,6 @@ class Record(CassandraBase, dict):
         (deleted, changed) = self._marshal().values()
 
         # Delete items
-
         for path in deleted:
             client.remove(self.key.keyspace, self.key.key, path,
                           self.timestamp(), ConsistencyLevel.ONE)
