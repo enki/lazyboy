@@ -143,9 +143,9 @@ class ModelType(type):
         for base in bases:
             if isinstance(base, ModelType) and hasattr(base, 'fields'):
                 fields.update(base.fields)
- 
+
         new_fields = {}
- 
+
         # Move all the class's attributes that are Fields to the fields set.
         for attrname, field in attrs.items():
             if not isinstance(field, Field):
@@ -159,6 +159,11 @@ class ModelType(type):
 
             field.name = attrname
             new_fields[attrname] = field
+
+
+        fields.update(new_fields)
+
+        for attrname, field in fields.items():
             if isinstance(field, KeyField):
                 # Add _key_field attr so we know what the key is
                 if '_key_field' in attrs:
@@ -166,7 +171,6 @@ class ModelType(type):
                         "model '%s'" % name)
                 attrs['_key_field'] = attrname
  
-        fields.update(new_fields)
 
         if 'key' in fields:
             raise AttributeError("Models cannot have field named 'key'.")
@@ -174,12 +178,15 @@ class ModelType(type):
         attrs['fields'] = fields
         new_cls = super(ModelType, cls).__new__(cls, name, bases, attrs)
 
-        if '_key_field' not in attrs:
-            raise AttributeError("%s is missing a KeyField." % name)
+        if '_key_field' not in new_cls.__dict__:
+            raise NameError("%s is missing a KeyField." % name)
 
         for field, value in new_fields.items():
             setattr(new_cls, field, value)
  
+        if not hasattr(new_cls, 'Meta'):
+            raise Exception("Class has no Meta definition.")
+
         return new_cls
 
 

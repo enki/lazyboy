@@ -7,10 +7,25 @@ from lazyboy import connection
 
 NOW = int(time.time())
 
-connection.add_pool('Tests', ['localhost:9160'])
+connection.add_pool('Tests', ['10.0.1.4:9160'])
 
 class ModelTestCase(unittest.TestCase):
     pass
+
+
+class TestModelInheritance(ModelTestCase):
+    def test_inheritance(self):
+        class ParentModel(models.Model):
+            class Meta:
+                keyspace = "ParentModels"
+                column_family = "ParentModel"
+
+            id = models.KeyField()
+            name = models.CharField()
+
+        class ChildModel(ParentModel):
+            pass
+
 
 class TestField(ModelTestCase):
     class MyModel(models.Model):
