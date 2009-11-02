@@ -116,7 +116,7 @@ class RelatedField(Field):
     def decode(self, value):
         if isinstance(value, dict):
             ret = self.cls()
-            ret.load(value)
+            ret.update(value)
             return ret
 
         args = {
@@ -239,7 +239,7 @@ class Model(Record):
         return value
 
     def delete(self):
-        self.remove()
+        Record.remove(self)
 
     def _marshal(self):
         result = Record._marshal(self)
