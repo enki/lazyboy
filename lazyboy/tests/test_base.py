@@ -1,21 +1,22 @@
 # -*- coding: utf-8 -*-
 #
-# A new Python file
-#
 # © 2009 Digg, Inc. All rights reserved.
 # Author: Ian Eure <ian@digg.com>
 #
+"""Unit tests for Lazyboy's CassandraBase."""
 
 import unittest
 from lazyboy.base import CassandraBase
 import lazyboy.connection
 from lazyboy.key import Key
-from lazyboy.exceptions import ErrorUnknownKeyspace, ErrorIncompleteKey
+from lazyboy.exceptions import ErrorIncompleteKey
+
 
 class CassandraBaseTest(unittest.TestCase):
+
     def __init__(self, *args, **kwargs):
         super(CassandraBaseTest, self).__init__(*args, **kwargs)
-        self.class_ =  CassandraBase
+        self.class_ = CassandraBase
 
     def _get_object(self, *args, **kwargs):
         return self.class_(*args, **kwargs)

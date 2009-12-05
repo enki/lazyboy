@@ -8,8 +8,12 @@ lib
 include
 .coverage
 coverage
+coverage.xml
 dist/*
 debian/files
 debian/python-lazyboy*
 debian/stamp-*
 python-build-stamp*
+README.html
+xunit.xml
+pep8.txt

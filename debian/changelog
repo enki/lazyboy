@@ -1,3 +1,22 @@
+python-lazyboy (0.7.4-1) unstable; urgency=low
+
+  * Fix view ordering issues.
+  * Fix a bug where the internal state of a Record was corrupted on save.
+  * Fix _save_internal so it doesn't depend on the record's key.
+  * Improved semantics for creating new and default record keys.
+  * Improved ConsistencyLevel handling.
+  * Add explicit support for denormalized records and indexes in Record.
+  * Add low-level column operations in column_crud.
+  * Add mid-level tools for dealing with rows in the iterators module. This includes get_slice, multiget, and key range scans.
+  * Added the Multigetterator, which will fetch a set of Keys in the
+    minimum number of network requests.
+  * Views can now return their length.
+  * Two View subclasses added: BatchLoadingView and FaultTolerantView.
+  * Clean up PEP8 & PyLint issues.
+  * Significantly improved unit test coverage.
+
+ -- Ian Eure <ian@digg.com>  Mon, 23 Nov 2009 11:50:41 -0800
+
 python-lazyboy (0.7.3-1) unstable; urgency=low
 
   * Fixed to examples and record. (Drew Schleck via wgillett).

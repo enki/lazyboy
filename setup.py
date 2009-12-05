@@ -7,9 +7,15 @@
 #
 
 from setuptools import setup, find_packages
+import os
+import glob
+
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+DEPS = glob.glob(os.path.dirname(os.path.abspath(__file__)) + "/deps/*")
+DEPS.append("http://github.com/ieure/python-cassandra/downloads")
 
 setup(name="Lazyboy",
-      version='0.7.3',
+      version='0.7.4',
       description="Object non-relational manager for Cassandra",
       url="http://github.com/digg/lazyboy/tree/master",
       packages=find_packages(),
@@ -19,5 +25,6 @@ setup(name="Lazyboy",
       license="Three-clause BSD",
       keywords="database cassandra",
       install_requires=['Thrift', 'Cassandra>=0.4.0'],
-      tests_require=['nose', 'coverage'],
-      dependency_links=["http://github.com/ieure/python-cassandra/downloads"])
+      zip_safe=False,
+      tests_require=['nose', 'coverage>=3.2b1'],
+      dependency_links=DEPS)

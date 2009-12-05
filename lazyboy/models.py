@@ -169,6 +169,7 @@ class ModelType(type):
                 if '_key_field' in attrs:
                     raise FieldError("Multiple key fields defined for " 
                         "model '%s'" % name)
+
                 attrs['_key_field'] = attrname
  
 
