@@ -11,7 +11,7 @@ class Field(object):
         self.options = kwargs
 
     def __set__(self, instance, value):
-        instance[self.name] = value
+        instance[self.name] = self.sanitize(value)
         if self.name in instance.__dict__:
             del instance.__dict__[self.name]
 
