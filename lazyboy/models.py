@@ -3,27 +3,34 @@ from lazyboy.key import Key
 import simplejson as json
 
 class Field(object):
-    def __init__(self, **kwargs):
-        if 'required' in kwargs:
-            if kwargs['required'] == True:
-                self.required = True
-            else:
-                self.required = False
-        elif not hasattr(self, 'required'):
-            self.required = True
+    default = None
 
-        if 'default' in kwargs:
-            self.default = kwargs['default']
-        else:
-            self.default = None
-
+    def __init__(self, required=True, **kwargs):
+        self.required = required
+        self.default = kwargs.pop('default', self.default)
         self.options = kwargs
 
     def __set__(self, instance, value):
-        instance[self.name] = self.sanitize(value)
+        instance[self.name] = value
+        if self.name in instance.__dict__:
+            del instance.__dict__[self.name]
 
     def __get__(self, instance, owner):
-        return self.decode(instance.get(self.name, self._get_default()))
+        if instance is None:
+            return self
+        if self.name not in instance.__dict__:
+            if self.name in instance:
+                # It's in the Record but not decoded into the Model yet.
+                instance.__dict__[self.name] = self.decode(instance[self.name])
+            else:
+                # It's not in the Record so use the default.
+                instance.__dict__[self.name] = self.decode(self._get_default())
+        return instance.__dict__[self.name]
+
+    def __delete__(self, instance):
+        if self.name in instance.__dict__:
+            del instance.__dict__[self.name]
+        del instance[self.name]
 
     def encode(self, value):
         if value.__class__ is unicode:
@@ -91,7 +98,7 @@ class BooleanField(Field):
 
 
 class DictField(Field):
-    default = {}
+    default = dict
 
     def encode(self, value):
         return json.dumps(value)

@@ -235,6 +235,14 @@ class TestDictField(ModelTestCase):
         id = models.KeyField()
         meta = models.DictField()
 
+    def assertDictEquals(self, dict1, dict2):
+        self.assertTrue(dict1.keys() == dict2.keys())
+        for k, v in dict1.iteritems():
+            if type(v) is dict:
+                self.assertDictEquals(v, dict2[k])
+            else:
+                self.assertEquals(v, dict2[k])
+
     def test_dict_field(self):
         """Test that the dict we store is the same when we get it back."""
 
@@ -254,6 +262,37 @@ class TestDictField(ModelTestCase):
 
         for key, val in meta.items():
             self.assertEquals(val, a.meta[key])
+
+    def test_modify_default_dict_field(self):
+        """Test that udpates to the dict are recorded."""
+        meta = {
+            'first_name': 'Joe',
+            'last_name': 'Stump',
+        }
+        m = self.MyDictModel()
+        m.id = "snorg"
+        m.meta['first_name'] = meta['first_name']
+        m.meta['last_name'] = meta['last_name']
+        self.assertDictEquals(m.meta, meta)
+        m.save()
+        
+        a = self.MyDictModel(id="snorg")
+        self.assertDictEquals(m.meta, a.meta)
+
+    def test_modify_existing_dict_field(self):
+        """Test that updates to an existing dict are recorded."""
+        meta = {
+            'first_name': 'Joe',
+            'last_name': 'Stump',
+        }
+        m = self.MyDictModel()
+        m.id = "rambam"
+        m.meta = meta
+        m.save()
+
+        a = self.MyDictModel(id="rambam")
+        a.meta['first_name'] = 'Jon'
+        self.assertEquals(a.meta['first_name'], 'Jon')
 
 
 class MyUserModel(models.Model):
@@ -378,3 +417,6 @@ class TestModelHasKeyField(ModelTestCase):
 
         self.fail("A model without a _key_field passed.")
 
+
+if __name__ == '__main__':
+    unittest.main()
