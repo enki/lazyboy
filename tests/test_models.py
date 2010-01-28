@@ -7,7 +7,7 @@ from lazyboy import connection
 
 NOW = int(time.time())
 
-connection.add_pool('Tests', ['10.0.1.4:9160'])
+connection.add_pool('Tests', ['192.168.1.114:9160'])
 
 class ModelTestCase(unittest.TestCase):
     pass
@@ -165,6 +165,14 @@ class TestBooleanField(ModelTestCase):
         a = self.MyBooleanModel(id="blah-true")
         self.assertTrue(isinstance(m.public, bool))
         self.assertEquals(m.public, a.public) 
+
+    def test_boolean_encode(self):
+        m = self.MyBooleanModel()
+        m.id = "blah-encode"
+        m['public'] = '0'
+        m.save()
+        m = self.MyBooleanModel(id="blah-encode")
+        self.assertTrue(m.public is False)
 
 class TestCharField(ModelTestCase):
     class MyCharModel(models.Model):

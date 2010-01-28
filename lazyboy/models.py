@@ -85,15 +85,13 @@ class FloatField(Field):
 
 class BooleanField(Field):
     def encode(self, value):
-        if value:
+        if value == True:
             return "1"
-
         return "0"
 
     def decode(self, value):
         if value == True or value == "1":
             return True
-
         return False
 
 
