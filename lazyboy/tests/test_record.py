@@ -52,6 +52,9 @@ class MockClient(Client):
 
     def remove(self, keyspace, key, column_path, timestamp, consistency_level):
         return
+    
+    def _connect(self):
+        return True
 
 
 class RecordTest(CassandraBaseTest):

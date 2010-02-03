@@ -61,7 +61,9 @@ class RecordSet(CassandraBase, dict):
         be. Except for SuperColumns."""
 
         records = modified(self.itervalues())
+        print "recordset.py" + str(ErrorMissingField)
         if not valid(records):
+            
             raise ErrorMissingField("Missing required field(s):",
                                     missing(records))
 

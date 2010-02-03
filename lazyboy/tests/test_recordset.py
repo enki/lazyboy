@@ -19,6 +19,7 @@ from cassandra.ttypes import ColumnOrSuperColumn
 from lazyboy.key import Key
 from lazyboy.record import Record
 import lazyboy.recordset as sets
+print sets
 #import valid, missing, modified, RecordSet, KeyRecordSet
 from lazyboy.exceptions import ErrorMissingKey, ErrorMissingField
 
@@ -143,7 +144,8 @@ class TestRecordSet(unittest.TestCase):
             record.valid = lambda: False
             self.object.append(record)
 
-        self.assertRaises(ErrorMissingField, self.object.save)
+        print "test_recordset.py" + str(ErrorMissingField)
+        self.failUnlessRaises(ErrorMissingField, self.object.save)
 
     def test_save(self):
         """Make sure RecordSet.save() works."""
