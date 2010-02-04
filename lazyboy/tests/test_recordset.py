@@ -19,7 +19,6 @@ from cassandra.ttypes import ColumnOrSuperColumn
 from lazyboy.key import Key
 from lazyboy.record import Record
 import lazyboy.recordset as sets
-print sets
 #import valid, missing, modified, RecordSet, KeyRecordSet
 from lazyboy.exceptions import ErrorMissingKey, ErrorMissingField
 
