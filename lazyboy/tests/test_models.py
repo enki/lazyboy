@@ -310,7 +310,6 @@ class TestListField(ModelTestCase):
             column_family = 'MyListFamily'
 
         id = models.KeyField()
-        print models
         meta = models.ListField()
 
     def assertListEquals(self, list1, list2):
@@ -319,7 +318,7 @@ class TestListField(ModelTestCase):
     def test_list_field(self):
         """Test that the list we store is the same when we get it back."""
 
-        meta = [[1,"2", 3],2,3,4,5, "joe", {"joe": "stump"}]
+        meta = [1,2,3,4,5]
 
         m = self.MyListModel()
         m.id = "blah"
@@ -327,23 +326,25 @@ class TestListField(ModelTestCase):
         m.save()
 
         a = self.MyListModel(id="blah")
-        self.assertTrue(isinstance(m.meta, list))
-        self.assertEquals(m.meta == a.meta)
+        self.failUnless(isinstance(m.meta, list), "m.meta is not a list")
+        self.failUnless(m.meta == a.meta, "The lists are different")
 
     def test_modify_default_list_field(self):
         """Test that udpates to the list are recorded."""
-        meta = [[1,"2", 3],2,3,4,5, "joe", {"joe": "stump"}]
+        # meta = [[1,"2", 3],2,3,4,5, "joe", {"joe": "stump"}]
+        meta = [1,2,3,4,5]
         m = self.MyListModel()
+        m.meta = meta
         m.id = "snorg"
-        self.assertEquals(m.meta == meta)
+        self.failUnlessEqual(m.meta, meta, "Equal lists are not equal, we have a problem")
         m.save()
 
         a = self.MyListModel(id="snorg")
-        self.assertEquals(m.meta == a.meta)
+        self.failUnless(m.meta == a.meta, "The lists are different")
 
     def test_modify_existing_list_field(self):
         """Test that updates to an existing list are recorded."""
-        meta = [[1,"2", 3],2,3,4,5, "joe", {"joe": "stump"}]
+        meta = [1,2,3,4,5]
         m = self.MyListModel()
         m.id = "rambam"
         m.meta = meta
@@ -351,8 +352,28 @@ class TestListField(ModelTestCase):
 
         a = self.MyListModel(id="rambam")
         self.failUnless(len(a) > 0)
-        self.failUnless(isinstance(a, list), a)
-        self.assertEquals(a[0] == [1,"2", 3])
+        self.failUnless(isinstance(a.meta, list), a.meta)
+        self.failUnlessEqual(a.meta[0], 1, "a.meta[0] != 1")
+    
+    def test_mixed_object_list_fields(self):
+        """Test that we can have different types of data in a list"""
+        m = self.MyListModel()
+        m.id = "rambam"
+        m.meta = [1, 2, "3", 4, {5: "5"}]
+        m.save()
+        
+        a = self.MyListModel(id="rambam")
+        self.failUnless(len(a) > 0)
+        self.failUnless(isinstance(a.meta, list), a.meta)
+        
+        self.failUnless(a.meta[0] == 1)
+        
+    def test_encode(self):
+        m = models.ListField()
+        val = [1, 2, "3", 4, {5: "5"}]
+        
+        self.failUnlessEqual(m.encode(val), "[1, 2, \"3\", 4, {\"5\": \"5\"}]")
+        
 
 class MyUserModel(models.Model):
     class Meta:

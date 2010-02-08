@@ -107,6 +107,18 @@ class DictField(Field):
 
         return json.loads(value)
 
+class ListField(Field):
+    default = list
+    
+    def encode(self, value):
+        return json.dumps(value)
+    
+    def decode(self, value):
+        if isinstance(value, list):
+            return value
+        
+        return json.loads(value)
+
 
 class RelatedField(Field):
     required = True
