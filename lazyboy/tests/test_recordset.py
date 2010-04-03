@@ -143,7 +143,7 @@ class TestRecordSet(unittest.TestCase):
             record.valid = lambda: False
             self.object.append(record)
 
-        self.assertRaises(ErrorMissingField, self.object.save)
+        self.failUnlessRaises(ErrorMissingField, self.object.save)
 
     def test_save(self):
         """Make sure RecordSet.save() works."""
