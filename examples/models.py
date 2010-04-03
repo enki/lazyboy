@@ -1,6 +1,9 @@
 from lazyboy import models
 
 class User(models.Model):
+    class Meta:
+        keyspace = 'ModelTest'
+        column_family = 'User'
     # All models must define one and only one KeyField.
     # This is the key that the record is stored under in
     # Cassandra.
