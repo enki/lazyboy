@@ -190,14 +190,14 @@ class Record(CassandraBase, dict):
                 'changed': tuple(self._columns[key]
                                  for key in self._modified.keys())}
 
-    def load(self, key, consistency=None):
+    def load(self, key, consistency=None, **predicate_args):
         """Load this record from primary key"""
         if not isinstance(key, Key):
             key = self.make_key(key)
 
         self._clean()
         consistency = consistency or self.consistency
-        return self._inject(key, iterators.slice_iterator(key, consistency))
+        return self._inject(key, iterators.slice_iterator(key, consistency, **predicate_args))
 
     def save(self, consistency=None):
         """Save the record, returns self."""
