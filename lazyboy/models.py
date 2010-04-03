@@ -1,6 +1,7 @@
 from lazyboy.record import Record
 from lazyboy.key import Key
 import simplejson as json
+import uuid
 
 class Field(object):
     default = None
@@ -59,6 +60,11 @@ class Field(object):
         else:
             return self.default
 
+    def renderKey(self, key):
+        return key
+    
+    def renderValue(self, value):
+        return value
 
 class CharField(Field):
     pass
@@ -74,6 +80,21 @@ class KeyField(CharField):
 
         CharField.__init__(self, **kwargs)
 
+class UUIDKeyField(KeyField):
+    def __init__(self, **kwargs):
+        deftmp = kwargs.get('default', None)
+        if deftmp:
+            try:
+                deftmp = uuid.UUID(kwargs['default'])
+            except ValueError:
+                pass
+        else:
+            deftmp = uuid.uuid4().bytes
+        kwargs['default'] = deftmp
+        KeyField.__init__(self, **kwargs)
+
+    def renderValue(self, value):
+        return uuid.UUID(bytes=value)
 
 class IntegerField(Field):
     decode = int
@@ -288,7 +309,7 @@ class Model(Record):
                     setattr(self, key, self.fields[key].decode(kwargs[key]))
 
     def __unicode__(self):
-        repr = [("%s='%s'" % (k, f)) for k, f in self.items()]
+        repr = [("%s='%s'" % (self.fields[k].renderKey(k), self.fields[k].renderValue(f))) for k, f in self.items()]
         return "%s(%s)" % (self.__class__.__name__, ', '.join(repr))
 
     def __repr__(self):
